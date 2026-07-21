@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+ Sistema Control de Flotas
+</title>
+
+
+<link rel="stylesheet" href="style.css">
+
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+
+<!-- =========================
+ SIDEBAR
+========================= -->
+
+
+<aside class="sidebar">
+
+
+<div class="logo">
+
+<div class="logo-icon">
+🚚
+</div>
+
+
+<div>
+
+<h2>
+Control de Flotas
+</h2>
+
+<span>
+    Control de Flotas
+</span>
+
+
+</div>
+
+</div>
+
+
+
+
+
+<nav>
+
+
+<button class="nav-item active"
+data-page="dashboard">
+
+🏠 Dashboard
+
+</button>
+
+
+
+<button class="nav-item"
+data-page="vehiculos">
+
+🚛 Vehículos
+
+</button>
+
+
+
+
+<button class="nav-item"
+data-page="conductores">
+
+👨‍✈️ Conductores
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="viajes">
+
+🛣 Viajes
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="qr">
+
+📷 Inicio Conducción QR
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="gps">
+
+📍 GPS Tracking
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="mantencion">
+
+🔧 Mantenciones
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="documentos">
+
+📄 Documentos
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="reportes">
+
+📊 Reportes
+
+</button>
+
+
+
+
+
+<button class="nav-item"
+data-page="configuracion">
+
+⚙ Configuración
+
+</button>
+
+
+
+</nav>
+
+
+
+
+
+
+<div class="sidebar-footer">
+
+
+FleetPro Pro Edition
+
+<br>
+
+v2.0
+
+
+</div>
+
+
+
+</aside>
+
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ CONTENIDO PRINCIPAL
+========================= -->
+
+
+<section class="main">
+
+
+
+
+
+<header class="topbar">
+
+
+
+<div class="search">
+
+
+🔎
+
+<input
+placeholder="Buscar vehículo, conductor..."
+>
+
+
+</div>
+
+
+
+
+
+
+<div class="top-actions">
+
+
+
+<button id="notificationBtn"
+class="notification">
+
+
+🔔
+
+<span>
+5
+</span>
+
+
+</button>
+
+
+
+
+
+<div class="profile">
+
+
+<img src="https://i.pravatar.cc/50">
+
+
+<div>
+
+<strong>
+Administrador
+</strong>
+
+
+<small>
+Operaciones
+</small>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+
+
+
+
+<main class="content">
+
+
+
+
+
+
+<!-- =========================
+ DASHBOARD
+========================= -->
+
+
+<section id="dashboard"
+class="page active">
+
+
+<h1>
+Dashboard Operacional
+</h1>
+
+
+<p>
+Control general de flota en tiempo real
+</p>
+
+
+
+
+<div class="stats">
+
+
+
+<div class="stat">
+
+<span>
+Vehículos
+</span>
+
+<strong>
+120
+</strong>
+
+</div>
+
+
+
+
+
+<div class="stat">
+
+<span>
+En ruta
+</span>
+
+<strong>
+68
+</strong>
+
+</div>
+
+
+
+
+
+
+<div class="stat">
+
+<span>
+Conductores activos
+</span>
+
+<strong>
+92
+</strong>
+
+</div>
+
+
+
+
+
+
+
+<div class="stat danger">
+
+<span>
+Alertas
+</span>
+
+<strong>
+8
+</strong>
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="panel">
+
+
+<h2>
+Estado operacional
+</h2>
+
+
+
+<table>
+
+
+<tr>
+
+<th>
+Vehículo
+</th>
+
+<th>
+Estado
+</th>
+
+<th>
+Ubicación
+</th>
+
+<th>
+Conductor
+</th>
+
+
+</tr>
+
+
+
+<tr>
+
+<td>
+ABCD12
+</td>
+
+<td>
+🟢 En ruta
+</td>
+
+<td>
+Santiago
+</td>
+
+<td>
+Carlos Ramírez
+</td>
+
+
+</tr>
+
+
+
+<tr>
+
+<td>
+EFGH45
+</td>
+
+<td>
+🟡 Espera
+</td>
+
+<td>
+Rancagua
+</td>
+
+<td>
+Pedro González
+</td>
+
+
+</tr>
+
+
+
+</table>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ VEHICULOS
+========================= -->
+
+
+<section id="vehiculos"
+class="page">
+
+
+<h1>
+Gestión Vehículos
+</h1>
+
+
+
+
+<div class="panel">
+
+
+<table>
+
+
+<tr>
+
+<th>
+Patente
+</th>
+
+<th>
+Modelo
+</th>
+
+<th>
+Kilómetros
+</th>
+
+<th>
+Estado
+</th>
+
+
+</tr>
+
+
+
+
+<tr>
+
+<td>
+ABCD12
+</td>
+
+<td>
+Mercedes Actros
+</td>
+
+<td>
+120450 km
+</td>
+
+<td>
+Activo
+</td>
+
+
+</tr>
+
+
+
+<tr>
+
+<td>
+EFGH45
+</td>
+
+<td>
+Ford Transit
+</td>
+
+<td>
+85400 km
+</td>
+
+<td>
+Disponible
+</td>
+
+
+</tr>
+
+
+
+</table>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ CONDUCTORES
+========================= -->
+
+
+<section id="conductores"
+class="page">
+
+
+<h1>
+Conductores
+</h1>
+
+
+
+<div class="panel">
+
+
+<table>
+
+
+<tr>
+
+<th>
+Nombre
+</th>
+
+<th>
+Licencia
+</th>
+
+<th>
+Estado
+</th>
+
+
+</tr>
+
+
+
+
+<tr>
+
+<td>
+Carlos Ramírez
+</td>
+
+<td>
+A5 Profesional
+</td>
+
+<td>
+Disponible
+</td>
+
+
+</tr>
+
+
+
+
+<tr>
+
+<td>
+Pedro González
+</td>
+
+<td>
+A4
+</td>
+
+<td>
+En viaje
+</td>
+
+
+</tr>
+
+
+</table>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ QR INICIO CONDUCCION
+========================= -->
+
+
+<section id="qr"
+class="page">
+
+
+<h1>
+Inicio de Conducción QR
+</h1>
+
+
+<p>
+Escanee el código del vehículo antes de iniciar ruta
+</p>
+
+
+
+
+
+<div class="qr-container">
+
+
+<div id="reader">
+
+
+📷
+
+<br>
+
+Scanner QR
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div id="vehicleInfo"
+class="panel hidden">
+
+
+<h2>
+Vehículo detectado
+</h2>
+
+
+
+<p>
+🚛 Mercedes Actros
+</p>
+
+
+
+<p>
+Patente:
+<b>
+ABCD12
+</b>
+</p>
+
+
+
+<p>
+Conductor:
+<b>
+Carlos Ramírez
+</b>
+</p>
+
+
+
+
+
+<h3>
+Checklist salida
+</h3>
+
+
+<label>
+<input type="checkbox">
+ Combustible OK
+</label>
+
+
+<br>
+
+
+<label>
+<input type="checkbox">
+ Neumáticos OK
+</label>
+
+
+
+<br>
+
+
+<label>
+<input type="checkbox">
+ Documentos OK
+</label>
+
+
+
+
+
+<br><br>
+
+
+
+<button id="startTrip"
+class="primary-btn">
+
+
+INICIAR CONDUCCIÓN
+
+
+</button>
+
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ GPS
+========================= -->
+
+
+<section id="gps"
+class="page">
+
+
+<h1>
+GPS Tracking
+</h1>
+
+
+
+<div class="map">
+
+
+📍
+
+
+<br>
+
+ABCD12
+
+
+<br>
+
+72 km/h
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ MANTENCIONES
+========================= -->
+
+
+<section id="mantencion"
+class="page">
+
+
+<h1>
+Mantenciones
+</h1>
+
+
+<div class="panel">
+
+
+Próxima revisión:
+
+
+<br><br>
+
+
+🚛 Mercedes Actros
+
+
+<br>
+
+15-09-2026
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ DOCUMENTOS
+========================= -->
+
+
+<section id="documentos"
+class="page">
+
+
+<h1>
+Documentos
+</h1>
+
+
+
+<div class="cards">
+
+
+<div class="card">
+Seguros
+<br>
+98%
+</div>
+
+
+<div class="card">
+Permisos
+<br>
+95%
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+ REPORTES
+========================= -->
+
+
+<section id="reportes"
+class="page">
+
+
+<h1>
+Reportes
+</h1>
+
+
+<div class="panel">
+
+
+<canvas id="fleetChart"></canvas>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<!-- CONFIGURACION -->
+
+
+<section id="configuracion"
+class="page">
+
+
+<h1>
+Configuración
+</h1>
+
+
+<div class="panel">
+
+Usuarios
+
+<br>
+
+Roles
+
+<br>
+
+Parámetros
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+</main>
+
+
+</section>
+
+
+</div>
+
+
+
+
+
+
+
+
+<!-- NOTIFICACIONES -->
+
+
+<div id="notificationPanel">
+
+
+<button id="closeNotify">
+
+✕
+
+</button>
+
+
+<h2>
+Alertas
+</h2>
+
+
+<p>
+🚨 Mantención pendiente
+</p>
+
+
+<p>
+⚠ Licencia próxima vencer
+</p>
+
+
+<p>
+📍 Desvío de ruta
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+
+<script src="app.js"></script>
+
+
+
+</body>
+
+</html>
