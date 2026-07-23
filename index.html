@@ -40,10 +40,11 @@
         <label class="field"><span>Nombre completo</span><input name="nombre" autocomplete="name" required placeholder="Ej. Alejandro Pérez"></label>
         <label class="field"><span>Correo</span><input name="correo" type="email" autocomplete="email" required placeholder="administrador@empresa.cl"></label>
         <label class="field"><span>Teléfono</span><input name="telefono" autocomplete="tel" placeholder="+56 9 0000 0000"></label>
-        <label class="field"><span>Contraseña inicial</span><input name="contrasena" type="password" minlength="8" autocomplete="new-password" required placeholder="Mínimo 8 caracteres"></label>
-        <label class="field"><span>Clave de instalación</span><input name="claveInstalacion" type="password" required placeholder="La definida en 00_Configuracion.gs"></label>
+        <label class="field"><span>Contraseña inicial</span><input name="contrasena" type="password" autocomplete="new-password" required placeholder="Letras, números o símbolos"></label>
+        <p class="helper">Puede elegir cualquier combinación. Se recomienda usar 8 caracteres o más. Distingue mayúsculas y minúsculas.</p>
+        <label class="field"><span>Clave de instalación</span><input name="claveInstalacion" type="password" required placeholder="La generada por instalarSistema()"></label>
         <button class="btn primary full" type="submit">Instalar y crear administrador</button>
-        <p class="helper">En almacenamiento local puede utilizar cualquier clave no vacía. En Google Apps Script debe coincidir con <code>CLAVE_INSTALACION</code>.</p>
+        <p class="helper">En almacenamiento local puede utilizar cualquier clave no vacía. En Google Apps Script use la clave mostrada al ejecutar <code>instalarSistema()</code>.</p>
       </form>
 
       <form class="auth-card hidden" id="loginForm">
@@ -55,6 +56,7 @@
         <label class="field"><span>Correo</span><input id="loginEmail" name="correo" type="email" autocomplete="username" required></label>
         <label class="field"><span>Contraseña</span><div class="password-field"><input id="loginPassword" name="contrasena" type="password" autocomplete="current-password" required><button type="button" id="showPassword" aria-label="Mostrar contraseña">◉</button></div></label>
         <button class="btn primary full" type="submit">Ingresar</button>
+        <p class="helper">Si es el propietario y no puede ingresar, ejecute <code>prepararAccesoAdministrador()</code> en Apps Script para obtener un acceso temporal.</p>
         <button class="link-button" id="recheckConnection" type="button">Volver a comprobar conexión</button>
       </form>
 
@@ -87,6 +89,7 @@
         <div class="topbar-actions">
           <div class="connection-status" id="connectionStatus"><i></i><span>Conectado</span></div>
           <div class="save-status" id="saveStatus"><i></i><span>Sin cambios pendientes</span></div>
+          <button class="icon-button notification-button" id="notificationButton" aria-label="Abrir notificaciones" title="Notificaciones">🔔<span id="notificationBadge" hidden>0</span></button>
           <button class="icon-button" id="themeButton" aria-label="Cambiar tema">☾</button>
           <button class="profile-button" id="profileButton"><span class="avatar" id="userAvatar">AD</span><span><b id="userName">Administrador</b><small id="userRole">Administrador</small></span><i>⌄</i></button>
         </div>
