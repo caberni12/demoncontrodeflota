@@ -1,1117 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<title>
- Sistema Control de Flotas
-</title>
-
-
-<link rel="stylesheet" href="style.css">
-
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b5f59">
+  <meta name="description" content="Sistema de Gestión de Flotas conectado con Google Apps Script y Hojas de cálculo de Google">
+  <title>Sistema de Gestión de Flotas</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="estilos.css">
 </head>
-
-
 <body>
-
-
-<div class="app">
-
-
-
-<!-- =========================
- SIDEBAR
-========================= -->
-
-
-<aside class="sidebar">
-
-
-<div class="logo">
-
-<div class="logo-icon">
-🚚
-</div>
-
-
-<div>
-
-<h2>
-Control de Flotas
-</h2>
-
-<span>
-    Control de Flotas
-</span>
-
-
-</div>
-
-</div>
-
-
-
-
-
-<nav>
-
-
-<button class="nav-item active"
-data-page="dashboard">
-
-🏠 Dashboard
-
-</button>
-
-
-
-<button class="nav-item"
-data-page="vehiculos">
-
-🚛 Vehículos
-
-</button>
-
-
-
-
-<button class="nav-item"
-data-page="conductores">
-
-👨‍✈️ Conductores
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="viajes">
-
-🛣 Viajes
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="qr">
-
-📷 Inicio Conducción QR
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="gps">
-
-📍 GPS Tracking
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="mantencion">
-
-🔧 Mantenciones
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="documentos">
-
-📄 Documentos
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="reportes">
-
-📊 Reportes
-
-</button>
-
-
-
-
-
-<button class="nav-item"
-data-page="configuracion">
-
-⚙ Configuración
-
-</button>
-
-
-
-</nav>
-
-
-
-
-
-
-<div class="sidebar-footer">
-
-
-FleetPro Pro Edition
-
-<br>
-
-v2.0
-
-
-</div>
-
-
-
-</aside>
-
-
-
-
-
-
-
-
-
-
-<!-- =========================
- CONTENIDO PRINCIPAL
-========================= -->
-
-
-<section class="main">
-
-
-
-
-
-<header class="topbar">
-
-
-
-<div class="search">
-
-
-🔎
-
-<input
-placeholder="Buscar vehículo, conductor..."
->
-
-
-</div>
-
-
-
-
-
-
-<div class="top-actions">
-
-
-
-<button id="notificationBtn"
-class="notification">
-
-
-🔔
-
-<span>
-5
-</span>
-
-
-</button>
-
-
-
-
-
-<div class="profile">
-
-
-<img src="https://i.pravatar.cc/50">
-
-
-<div>
-
-<strong>
-Administrador
-</strong>
-
-
-<small>
-Operaciones
-</small>
-
-
-</div>
-
-
-</div>
-
-
-
-</div>
-
-
-</header>
-
-
-
-
-
-
-
-
-
-<main class="content">
-
-
-
-
-
-
-<!-- =========================
- DASHBOARD
-========================= -->
-
-
-<section id="dashboard"
-class="page active">
-
-
-<h1>
-Dashboard Operacional
-</h1>
-
-
-<p>
-Control general de flota en tiempo real
-</p>
-
-
-
-
-<div class="stats">
-
-
-
-<div class="stat">
-
-<span>
-Vehículos
-</span>
-
-<strong>
-120
-</strong>
-
-</div>
-
-
-
-
-
-<div class="stat">
-
-<span>
-En ruta
-</span>
-
-<strong>
-68
-</strong>
-
-</div>
-
-
-
-
-
-
-<div class="stat">
-
-<span>
-Conductores activos
-</span>
-
-<strong>
-92
-</strong>
-
-</div>
-
-
-
-
-
-
-
-<div class="stat danger">
-
-<span>
-Alertas
-</span>
-
-<strong>
-8
-</strong>
-
-</div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-<div class="panel">
-
-
-<h2>
-Estado operacional
-</h2>
-
-
-
-<table>
-
-
-<tr>
-
-<th>
-Vehículo
-</th>
-
-<th>
-Estado
-</th>
-
-<th>
-Ubicación
-</th>
-
-<th>
-Conductor
-</th>
-
-
-</tr>
-
-
-
-<tr>
-
-<td>
-ABCD12
-</td>
-
-<td>
-🟢 En ruta
-</td>
-
-<td>
-Santiago
-</td>
-
-<td>
-Carlos Ramírez
-</td>
-
-
-</tr>
-
-
-
-<tr>
-
-<td>
-EFGH45
-</td>
-
-<td>
-🟡 Espera
-</td>
-
-<td>
-Rancagua
-</td>
-
-<td>
-Pedro González
-</td>
-
-
-</tr>
-
-
-
-</table>
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- VEHICULOS
-========================= -->
-
-
-<section id="vehiculos"
-class="page">
-
-
-<h1>
-Gestión Vehículos
-</h1>
-
-
-
-
-<div class="panel">
-
-
-<table>
-
-
-<tr>
-
-<th>
-Patente
-</th>
-
-<th>
-Modelo
-</th>
-
-<th>
-Kilómetros
-</th>
-
-<th>
-Estado
-</th>
-
-
-</tr>
-
-
-
-
-<tr>
-
-<td>
-ABCD12
-</td>
-
-<td>
-Mercedes Actros
-</td>
-
-<td>
-120450 km
-</td>
-
-<td>
-Activo
-</td>
-
-
-</tr>
-
-
-
-<tr>
-
-<td>
-EFGH45
-</td>
-
-<td>
-Ford Transit
-</td>
-
-<td>
-85400 km
-</td>
-
-<td>
-Disponible
-</td>
-
-
-</tr>
-
-
-
-</table>
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- CONDUCTORES
-========================= -->
-
-
-<section id="conductores"
-class="page">
-
-
-<h1>
-Conductores
-</h1>
-
-
-
-<div class="panel">
-
-
-<table>
-
-
-<tr>
-
-<th>
-Nombre
-</th>
-
-<th>
-Licencia
-</th>
-
-<th>
-Estado
-</th>
-
-
-</tr>
-
-
-
-
-<tr>
-
-<td>
-Carlos Ramírez
-</td>
-
-<td>
-A5 Profesional
-</td>
-
-<td>
-Disponible
-</td>
-
-
-</tr>
-
-
-
-
-<tr>
-
-<td>
-Pedro González
-</td>
-
-<td>
-A4
-</td>
-
-<td>
-En viaje
-</td>
-
-
-</tr>
-
-
-</table>
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- QR INICIO CONDUCCION
-========================= -->
-
-
-<section id="qr"
-class="page">
-
-
-<h1>
-Inicio de Conducción QR
-</h1>
-
-
-<p>
-Escanee el código del vehículo antes de iniciar ruta
-</p>
-
-
-
-
-
-<div class="qr-container">
-
-
-<div id="reader">
-
-
-📷
-
-<br>
-
-Scanner QR
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-<div id="vehicleInfo"
-class="panel hidden">
-
-
-<h2>
-Vehículo detectado
-</h2>
-
-
-
-<p>
-🚛 Mercedes Actros
-</p>
-
-
-
-<p>
-Patente:
-<b>
-ABCD12
-</b>
-</p>
-
-
-
-<p>
-Conductor:
-<b>
-Carlos Ramírez
-</b>
-</p>
-
-
-
-
-
-<h3>
-Checklist salida
-</h3>
-
-
-<label>
-<input type="checkbox">
- Combustible OK
-</label>
-
-
-<br>
-
-
-<label>
-<input type="checkbox">
- Neumáticos OK
-</label>
-
-
-
-<br>
-
-
-<label>
-<input type="checkbox">
- Documentos OK
-</label>
-
-
-
-
-
-<br><br>
-
-
-
-<button id="startTrip"
-class="primary-btn">
-
-
-INICIAR CONDUCCIÓN
-
-
-</button>
-
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- GPS
-========================= -->
-
-
-<section id="gps"
-class="page">
-
-
-<h1>
-GPS Tracking
-</h1>
-
-
-
-<div class="map">
-
-
-📍
-
-
-<br>
-
-ABCD12
-
-
-<br>
-
-72 km/h
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- MANTENCIONES
-========================= -->
-
-
-<section id="mantencion"
-class="page">
-
-
-<h1>
-Mantenciones
-</h1>
-
-
-<div class="panel">
-
-
-Próxima revisión:
-
-
-<br><br>
-
-
-🚛 Mercedes Actros
-
-
-<br>
-
-15-09-2026
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- DOCUMENTOS
-========================= -->
-
-
-<section id="documentos"
-class="page">
-
-
-<h1>
-Documentos
-</h1>
-
-
-
-<div class="cards">
-
-
-<div class="card">
-Seguros
-<br>
-98%
-</div>
-
-
-<div class="card">
-Permisos
-<br>
-95%
-</div>
-
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- =========================
- REPORTES
-========================= -->
-
-
-<section id="reportes"
-class="page">
-
-
-<h1>
-Reportes
-</h1>
-
-
-<div class="panel">
-
-
-<canvas id="fleetChart"></canvas>
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- CONFIGURACION -->
-
-
-<section id="configuracion"
-class="page">
-
-
-<h1>
-Configuración
-</h1>
-
-
-<div class="panel">
-
-Usuarios
-
-<br>
-
-Roles
-
-<br>
-
-Parámetros
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-</main>
-
-
-</section>
-
-
-</div>
-
-
-
-
-
-
-
-
-<!-- NOTIFICACIONES -->
-
-
-<div id="notificationPanel">
-
-
-<button id="closeNotify">
-
-✕
-
-</button>
-
-
-<h2>
-Alertas
-</h2>
-
-
-<p>
-🚨 Mantención pendiente
-</p>
-
-
-<p>
-⚠ Licencia próxima vencer
-</p>
-
-
-<p>
-📍 Desvío de ruta
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-
-<script src="app.js"></script>
-
-
-
+  <noscript><div class="noscript">Debe habilitar JavaScript para utilizar el sistema.</div></noscript>
+
+  <section class="auth-screen" id="authScreen">
+    <div class="auth-art" aria-hidden="true">
+      <div class="brand hero-brand">
+        <img id="authCompanyLogo" src="logo.svg" alt="Logotipo de la empresa">
+        <div><strong id="authCompanyName">Sistema de Gestión de Flotas</strong><span>Google Apps Script y Hojas de cálculo de Google</span></div>
+      </div>
+      <div class="hero-copy">
+        <span class="eyebrow">SISTEMA VACÍO Y LISTO PARA CONFIGURAR</span>
+        <h1>Gestione vehículos, conductores, operaciones y ubicaciones desde una sola plataforma.</h1>
+        <p>La interfaz funciona con almacenamiento local y puede conectarse a Google Apps Script al configurar la dirección de la aplicación web.</p>
+      </div>
+      <div class="hero-preview">
+        <div><span>Vehículos</span><b>0</b></div><div><span>Conductores</span><b>0</b></div><div><span>Operaciones</span><b>0</b></div>
+      </div>
+    </div>
+
+    <div class="auth-panel">
+      <div class="backend-pill"><i></i><span id="authBackendLabel">Comprobando conexión…</span></div>
+
+      <form class="auth-card hidden" id="setupForm">
+        <div class="auth-heading">
+          <span class="eyebrow">PRIMERA INSTALACIÓN</span>
+          <h2>Crear administrador inicial</h2>
+          <p>La base está vacía. Este formulario crea el primer usuario administrador.</p>
+        </div>
+        <label class="field"><span>Nombre completo</span><input name="nombre" autocomplete="name" required placeholder="Ej. Alejandro Pérez"></label>
+        <label class="field"><span>Correo</span><input name="correo" type="email" autocomplete="email" required placeholder="administrador@empresa.cl"></label>
+        <label class="field"><span>Teléfono</span><input name="telefono" autocomplete="tel" placeholder="+56 9 0000 0000"></label>
+        <label class="field"><span>Contraseña inicial</span><input name="contrasena" type="password" minlength="8" autocomplete="new-password" required placeholder="Mínimo 8 caracteres"></label>
+        <label class="field"><span>Clave de instalación</span><input name="claveInstalacion" type="password" required placeholder="La definida en 00_Configuracion.gs"></label>
+        <button class="btn primary full" type="submit">Instalar y crear administrador</button>
+        <p class="helper">En almacenamiento local puede utilizar cualquier clave no vacía. En Google Apps Script debe coincidir con <code>CLAVE_INSTALACION</code>.</p>
+      </form>
+
+      <form class="auth-card hidden" id="loginForm">
+        <div class="auth-heading">
+          <span class="eyebrow">ACCESO AL SISTEMA</span>
+          <h2>Iniciar sesión</h2>
+          <p>Ingrese con un usuario registrado en la hoja USUARIOS.</p>
+        </div>
+        <label class="field"><span>Correo</span><input id="loginEmail" name="correo" type="email" autocomplete="username" required></label>
+        <label class="field"><span>Contraseña</span><div class="password-field"><input id="loginPassword" name="contrasena" type="password" autocomplete="current-password" required><button type="button" id="showPassword" aria-label="Mostrar contraseña">◉</button></div></label>
+        <button class="btn primary full" type="submit">Ingresar</button>
+        <button class="link-button" id="recheckConnection" type="button">Volver a comprobar conexión</button>
+      </form>
+
+      <div class="auth-card hidden" id="connectionError">
+        <div class="auth-heading"><span class="eyebrow danger-text">CONEXIÓN</span><h2>No fue posible abrir el servicio de datos</h2><p id="connectionErrorText"></p></div>
+        <button class="btn primary full" id="retryConnection" type="button">Reintentar</button>
+        <button class="btn soft full" id="useLocalMode" type="button">Continuar con almacenamiento local</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="app-shell hidden" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand sidebar-brand">
+        <img id="sidebarCompanyLogo" src="logo.svg" alt="Logotipo de la empresa">
+        <div><strong id="sidebarCompanyName">Sistema de Gestión de Flotas</strong><span id="sidebarCompanySubtitle">Gestión integral</span></div>
+        <button class="icon-button close-sidebar" id="closeSidebar" aria-label="Cerrar menú">×</button>
+      </div>
+      <nav id="nav" class="nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-footer">
+        <div class="backend-card"><span>Servicio de datos activo</span><b id="backendName">Local</b><small id="backendDetail">Persistencia en navegador</small></div>
+        <button class="nav-button logout" id="logoutButton"><i>↪</i>Cerrar sesión</button>
+      </div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-title"><button class="icon-button mobile-menu" id="openSidebar" aria-label="Abrir menú">☰</button><div><span id="breadcrumb">Sistema / Panel principal</span><h2 id="pageTitle">Panel principal</h2></div></div>
+        <div class="topbar-actions">
+          <div class="connection-status" id="connectionStatus"><i></i><span>Conectado</span></div>
+          <div class="save-status" id="saveStatus"><i></i><span>Sin cambios pendientes</span></div>
+          <button class="icon-button" id="themeButton" aria-label="Cambiar tema">☾</button>
+          <button class="profile-button" id="profileButton"><span class="avatar" id="userAvatar">AD</span><span><b id="userName">Administrador</b><small id="userRole">Administrador</small></span><i>⌄</i></button>
+        </div>
+      </header>
+
+      <div class="profile-menu" id="profileMenu"><button data-profile-action="profile">Mi perfil</button><button data-profile-action="password">Cambiar contraseña</button><button data-profile-action="logout">Cerrar sesión</button></div>
+      <section class="content" id="content" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header"><div><span class="eyebrow" id="modalEyebrow">REGISTRO</span><h3 id="modalTitle">Nuevo registro</h3></div><button class="icon-button" id="closeModal" aria-label="Cerrar">×</button></header>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="qrBackdrop">
+    <div class="modal qr-modal" role="dialog" aria-modal="true">
+      <header class="modal-header"><div><span class="eyebrow">OPERACIÓN QR</span><h3>Escanear vehículo</h3></div><button class="icon-button" id="closeQr" aria-label="Cerrar">×</button></header>
+      <div class="scanner"><video id="qrVideo" playsinline muted></video><div class="scan-frame"><i></i></div><div class="camera-empty" id="cameraEmpty"><b>▦</b><span>Active la cámara o escriba el código manualmente.</span></div></div>
+      <div class="scanner-status" id="scannerStatus"><i></i><span>Cámara detenida</span></div>
+      <div class="scanner-controls"><select id="cameraSelect"><option value="">Cámara predeterminada</option></select><button class="btn soft" id="startCamera" type="button">Activar cámara</button><button class="btn soft" id="switchCamera" type="button">Cambiar cámara</button></div>
+      <div class="manual-code"><label class="field"><span>Código QR</span><input id="manualQr" placeholder="Ej. VEH-ABCD12"></label><button class="btn primary" id="validateQr" type="button">Validar</button></div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="configuracion.js"></script>
+  <script src="mapa.js"></script>
+  <script src="conexion.js"></script>
+  <script src="aplicacion.js"></script>
 </body>
-
 </html>
