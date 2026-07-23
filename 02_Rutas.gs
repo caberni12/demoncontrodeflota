@@ -1,10 +1,11 @@
 /** Enrutador único del servicio de datos. */
 function enrutarSolicitud_(request, event) {
+  reiniciarCachesEjecucion_();
   const accion = String(request.accion || '').trim();
   if (!accion) throw new Error('ACCION_REQUERIDA');
 
   if (accion === 'salud') {
-    return ok_({ version: VERSION_APLICACION, service: 'Sistema de Gestión de Flotas - Google Apps Script', now: fechaIso_() });
+    return ok_({ version: VERSION_APLICACION, service: 'Base de datos central del Sistema de Gestión de Flotas', now: fechaIso_() });
   }
   if (accion === 'estadoSistema') return estadoSistema_();
   if (accion === 'instalacionInicial') return instalarSistemaInicial_(request);
@@ -15,6 +16,7 @@ function enrutarSolicitud_(request, event) {
   switch (accion) {
     case 'cerrarSesion': return cerrarSesion_(request.fichaSesion, session);
     case 'miSesion': return ok_({ user: usuarioPublico_(session.user) });
+    case 'cargaRapida': return cargaRapida_(request, session);
     case 'panelPrincipal': return panelPrincipal_(session);
     case 'listar': return servicioListar_(request, session);
     case 'obtener': return servicioObtener_(request, session);
@@ -37,6 +39,38 @@ function enrutarSolicitud_(request, event) {
     case 'limpiarDatosOperativos': return limpiarDatosOperativosServicio_(request, session);
     default: throw new Error('ACCION_NO_ENCONTRADA');
   }
+}
+
+function cargaRapida_(request, session) {
+  const data = request.datos || {};
+  const consultas = Array.isArray(data.consultas) ? data.consultas : [];
+  const maximo = Number(CONFIGURACION_APLICACION.MAXIMO_CONSULTAS_CARGA_RAPIDA || 18);
+  if (!consultas.length) throw new Error('CONSULTAS_REQUERIDAS');
+  if (consultas.length > maximo) throw new Error('DEMASIADAS_CONSULTAS');
+
+  const resultados = {};
+  consultas.forEach(function(consulta, index) {
+    const clave = String(consulta.clave || index).slice(0, 240);
+    const accion = String(consulta.accion || '');
+    let respuesta;
+    if (accion === 'miSesion') {
+      respuesta = ok_({ user: usuarioPublico_(session.user) });
+    } else if (accion === 'panelPrincipal') {
+      respuesta = panelPrincipal_(session);
+    } else if (accion === 'resumenTiempoReal') {
+      respuesta = resumenTiempoReal_(consulta, session);
+    } else if (accion === 'listar') {
+      respuesta = servicioListar_({
+        recurso: consulta.recurso,
+        filtros: consulta.filtros || {},
+        limite: consulta.limite,
+      }, session);
+    } else {
+      throw new Error('CONSULTA_CARGA_RAPIDA_NO_PERMITIDA');
+    }
+    resultados[clave] = respuesta && respuesta.data ? respuesta.data : {};
+  });
+  return ok_({ resultados: resultados, total: consultas.length });
 }
 
 function servicioListar_(request, session) {

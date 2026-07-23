@@ -5,6 +5,7 @@
   const accionesAplicacion = Object.freeze({
     health:'salud', status:'estadoSistema', bootstrap:'instalacionInicial', login:'iniciarSesion',
     logout:'cerrarSesion', me:'miSesion', dashboard:'panelPrincipal', list:'listar', get:'obtener',
+    quickLoad:'cargaRapida',
     create:'crear', update:'actualizar', delete:'eliminar', startOperation:'iniciarOperacion',
     finishOperation:'finalizarOperacion', saveLocation:'guardarUbicacion', latestLocations:'ultimasUbicaciones',
     changePassword:'cambiarContrasena', saveCompany:'guardarEmpresa', clearOperationalData:'limpiarDatosOperativos',
@@ -46,6 +47,9 @@
   let localDb = loadLocal();
   let auth = loadAuth();
   const qrAuthorizations = new Map();
+  const cacheRespuestas = new Map();
+  const solicitudesPendientes = new Map();
+  const accionesLectura = new Set(['status','me','dashboard','list','realtimeSummary']);
 
   function loadAuth() {
     try { return JSON.parse(localStorage.getItem(config.CLAVE_SESION_LOCAL)) || {}; }
@@ -58,7 +62,9 @@
   }
 
   function setAuth(data) {
+    const fichaAnterior = auth.token || '';
     auth = data || {};
+    if (fichaAnterior !== (auth.token || '')) limpiarCache();
     if (auth.token) localStorage.setItem(config.CLAVE_SESION_LOCAL, JSON.stringify(auth));
     else localStorage.removeItem(config.CLAVE_SESION_LOCAL);
     window.dispatchEvent(new CustomEvent('flotas:sesion-cambiada', { detail: auth }));
@@ -72,12 +78,224 @@
   }
 
   function backendLabel() {
-    return isRemote() ? 'Google Apps Script' : 'Almacenamiento local';
+    return isRemote() ? 'Base de datos central' : 'Base de datos local';
   }
 
   async function request(action, payload = {}) {
-    if (isRemote()) return remoteRequest(action, payload);
+    if (isRemote()) {
+      if (accionesLectura.has(action) && payload.cache !== false) return solicitarLecturaRemota(action, payload);
+      const result = await remoteRequest(action, payload);
+      invalidarDespuesDeEscritura(action, payload);
+      return result;
+    }
     return localRequest(action, payload);
+  }
+
+  function limpiarCache() {
+    cacheRespuestas.clear();
+    solicitudesPendientes.clear();
+  }
+
+  function normalizarParaClave(value) {
+    if (Array.isArray(value)) return value.map(normalizarParaClave);
+    if (!value || typeof value !== 'object') return value;
+    return Object.keys(value).sort().reduce((output, key) => {
+      if (['force','cache','marcaTiempo'].includes(key)) return output;
+      output[key] = normalizarParaClave(value[key]);
+      return output;
+    }, {});
+  }
+
+  function claveCache(action, payload = {}) {
+    const usuario = auth.user?.ID || auth.sessionId || (auth.token ? 'sesion' : 'publico');
+    return `${usuario}|${action}|${JSON.stringify(normalizarParaClave(payload))}`;
+  }
+
+  function politicaCache(action) {
+    if (action === 'realtimeSummary') {
+      return {
+        vigente: Number(config.CACHE_TIEMPO_REAL_MILISEGUNDOS || 4000),
+        maxima: Math.max(15000, Number(config.CACHE_MAXIMA_ANTIGUEDAD_MILISEGUNDOS || 300000)),
+      };
+    }
+    if (action === 'me') return { vigente: 600000, maxima: 1800000 };
+    return {
+      vigente: Number(config.CACHE_MODULOS_MILISEGUNDOS || 60000),
+      maxima: Number(config.CACHE_MAXIMA_ANTIGUEDAD_MILISEGUNDOS || 300000),
+    };
+  }
+
+  function guardarEnCache(action, payload, data) {
+    const key = claveCache(action, payload);
+    cacheRespuestas.set(key, {
+      action,
+      resource: payload.resource || '',
+      payload: normalizarParaClave(payload),
+      data,
+      time: Date.now(),
+    });
+    if (cacheRespuestas.size > 80) cacheRespuestas.delete(cacheRespuestas.keys().next().value);
+    return data;
+  }
+
+  function invalidarCache(criteria = {}) {
+    const actions = new Set(criteria.actions || []);
+    const resources = new Set(criteria.resources || []);
+    if (!actions.size && !resources.size) {
+      limpiarCache();
+      return;
+    }
+    cacheRespuestas.forEach((entry, key) => {
+      if (actions.has(entry.action) || (entry.resource && resources.has(entry.resource))) cacheRespuestas.delete(key);
+    });
+  }
+
+  function invalidarDespuesDeEscritura(action, payload = {}) {
+    if (accionesLectura.has(action) || ['health','login'].includes(action)) return;
+    if (action === 'heartbeat') {
+      invalidarCache({ actions:['realtimeSummary'] });
+      return;
+    }
+    if (action === 'saveLocation') {
+      invalidarCache({ actions:['realtimeSummary'], resources:['gps'] });
+      return;
+    }
+    const impacts = {
+      create: { actions:['dashboard'], resources:[payload.resource,'audit'] },
+      update: { actions:['dashboard'], resources:[payload.resource,'audit'] },
+      delete: { actions:['dashboard'], resources:[payload.resource,'audit'] },
+      startOperation: { actions:['dashboard','realtimeSummary'], resources:['operations','vehicles','drivers','history','audit'] },
+      finishOperation: { actions:['dashboard','realtimeSummary'], resources:['operations','vehicles','drivers','history','audit'] },
+      assignRoute: { actions:['dashboard','realtimeSummary'], resources:['routes','notifications','audit'] },
+      updateRouteStatus: { actions:['dashboard','realtimeSummary'], resources:['routes','notifications','audit'] },
+      sendNotification: { actions:['dashboard','realtimeSummary'], resources:['notifications','audit'] },
+      readNotification: { actions:['dashboard','realtimeSummary'], resources:['notifications'] },
+      saveCompany: { actions:['status'], resources:['companies','audit'] },
+      changePassword: { actions:['me'], resources:['users','audit'] },
+    };
+    if (action === 'logout' || action === 'clearOperationalData') return limpiarCache();
+    const impact = impacts[action];
+    if (impact) invalidarCache(impact);
+  }
+
+  function iniciarActualizacionLectura(action, payload, key) {
+    if (solicitudesPendientes.has(key)) return solicitudesPendientes.get(key);
+    const cleanPayload = { ...payload };
+    delete cleanPayload.force;
+    delete cleanPayload.cache;
+    const pending = remoteRequest(action, cleanPayload)
+      .then(data => guardarEnCache(action, cleanPayload, data))
+      .finally(() => {
+        if (solicitudesPendientes.get(key) === pending) solicitudesPendientes.delete(key);
+      });
+    solicitudesPendientes.set(key, pending);
+    return pending;
+  }
+
+  async function solicitarLecturaRemota(action, payload = {}) {
+    const key = claveCache(action, payload);
+    const cached = cacheRespuestas.get(key);
+    const policy = politicaCache(action);
+    const age = cached ? Date.now() - cached.time : Infinity;
+    if (!payload.force && cached && age <= policy.vigente) return cached.data;
+    if (!payload.force && cached && age <= policy.maxima) {
+      iniciarActualizacionLectura(action, payload, key).catch(() => {});
+      return cached.data;
+    }
+    return iniciarActualizacionLectura(action, payload, key);
+  }
+
+  function descriptorConsulta(query, index) {
+    const action = query.action;
+    const payload = query.payload || {};
+    if (!accionesLectura.has(action)) throw new Error('CONSULTA_RAPIDA_NO_PERMITIDA');
+    return {
+      outputKey: query.key || query.clave || String(index),
+      action,
+      payload,
+      cacheKey: claveCache(action, payload),
+    };
+  }
+
+  async function ejecutarLoteRemoto(descriptors) {
+    if (!descriptors.length) return [];
+    const batchPromise = (async () => {
+      const consultas = descriptors.map((descriptor, index) => ({
+        clave: String(index),
+        accion: accionesAplicacion[descriptor.action] || descriptor.action,
+        recurso: descriptor.payload.resource ? (recursosAplicacion[descriptor.payload.resource] || descriptor.payload.resource) : undefined,
+        filtros: descriptor.payload.filters,
+        limite: descriptor.payload.limit,
+        marcaTiempo: descriptor.payload.marcaTiempo,
+      }));
+      let values;
+      try {
+        const response = await remoteRequest('quickLoad', { data:{ consultas } });
+        values = descriptors.map((_, index) => response.resultados?.[String(index)] || {});
+      } catch (error) {
+        if (error.message !== 'ACCION_NO_ENCONTRADA') throw error;
+        values = await Promise.all(descriptors.map(descriptor => remoteRequest(descriptor.action, descriptor.payload)));
+      }
+      values.forEach((data, index) => guardarEnCache(descriptors[index].action, descriptors[index].payload, data));
+      return values;
+    })();
+    const itemPromises = descriptors.map((descriptor, index) => batchPromise.then(values => values[index]));
+    descriptors.forEach((descriptor, index) => solicitudesPendientes.set(descriptor.cacheKey, itemPromises[index]));
+    try {
+      return await batchPromise;
+    } finally {
+      descriptors.forEach((descriptor, index) => {
+        if (solicitudesPendientes.get(descriptor.cacheKey) === itemPromises[index]) solicitudesPendientes.delete(descriptor.cacheKey);
+      });
+    }
+  }
+
+  async function requestBatch(queries, options = {}) {
+    if (!Array.isArray(queries) || !queries.length) return {};
+    if (!isRemote()) {
+      const values = await Promise.all(queries.map(query => request(query.action, query.payload || {})));
+      return queries.reduce((output, query, index) => {
+        output[query.key || query.clave || String(index)] = values[index];
+        return output;
+      }, {});
+    }
+    const maximo = Number(config.PRECARGA_MAXIMA_CONSULTAS || 16);
+    const descriptors = queries.slice(0, maximo).map(descriptorConsulta);
+    const output = {};
+    const needed = [];
+    const stale = [];
+    const pending = [];
+    descriptors.forEach(descriptor => {
+      const cached = cacheRespuestas.get(descriptor.cacheKey);
+      const policy = politicaCache(descriptor.action);
+      const age = cached ? Date.now() - cached.time : Infinity;
+      if (!options.force && cached && age <= policy.vigente) {
+        output[descriptor.outputKey] = cached.data;
+      } else if (!options.force && cached && age <= policy.maxima) {
+        output[descriptor.outputKey] = cached.data;
+        stale.push(descriptor);
+      } else if (solicitudesPendientes.has(descriptor.cacheKey)) {
+        pending.push(solicitudesPendientes.get(descriptor.cacheKey).then(data => {
+          output[descriptor.outputKey] = data;
+        }));
+      } else {
+        needed.push(descriptor);
+      }
+    });
+
+    if (needed.length) {
+      const batch = [...needed, ...stale.filter(item => !solicitudesPendientes.has(item.cacheKey))];
+      const values = await ejecutarLoteRemoto(batch);
+      batch.forEach((descriptor, index) => { output[descriptor.outputKey] = values[index]; });
+    } else if (stale.length) {
+      ejecutarLoteRemoto(stale.filter(item => !solicitudesPendientes.has(item.cacheKey))).catch(() => {});
+    }
+    if (pending.length) await Promise.all(pending);
+    return output;
+  }
+
+  function prefetch(queries) {
+    return requestBatch(queries).catch(() => ({}));
   }
 
 
@@ -94,6 +312,7 @@
     solicitud.agenteNavegador = navigator.userAgent;
     delete solicitud.action; delete solicitud.resource; delete solicitud.data; delete solicitud.filters;
     delete solicitud.limit; delete solicitud.id; delete solicitud.token; delete solicitud.userAgent; delete solicitud.confirmation;
+    delete solicitud.force; delete solicitud.cache;
     return solicitud;
   }
 
@@ -178,7 +397,7 @@
   async function localRequest(action, payload) {
     await Promise.resolve();
     switch (action) {
-      case 'health': return { service:'Sistema de Gestión de Flotas local', version:'2.2.0', now:iso() };
+      case 'health': return { service:'Base de datos local del Sistema de Gestión de Flotas', version:'2.2.0', now:iso() };
       case 'status': return {
         connected:true, needsSetup:activeRows(localDb.users).length === 0, spreadsheetName:'Base local del navegador',
         rows:{ users:activeRows(localDb.users).length, vehicles:activeRows(localDb.vehicles).length,
@@ -470,6 +689,9 @@
 
   window.ConexionFlotas = {
     request,
+    requestBatch,
+    prefetch,
+    invalidate: invalidarCache,
     isRemote,
     backendLabel,
     getAuth: () => ({ ...auth }),

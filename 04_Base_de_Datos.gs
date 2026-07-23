@@ -1,19 +1,42 @@
 /** Capa genérica de acceso a Google Sheets. */
+let CACHE_SPREADSHEET_EJECUCION_ = null;
+let CACHE_HOJAS_EJECUCION_ = {};
+let CACHE_LECTURAS_EJECUCION_ = {};
+
+function reiniciarCachesEjecucion_() {
+  CACHE_SPREADSHEET_EJECUCION_ = null;
+  CACHE_HOJAS_EJECUCION_ = {};
+  CACHE_LECTURAS_EJECUCION_ = {};
+}
+
+function invalidarCacheHoja_(sheetName) {
+  delete CACHE_LECTURAS_EJECUCION_[sheetName];
+}
+
 function obtenerSpreadsheet_() {
+  if (CACHE_SPREADSHEET_EJECUCION_) return CACHE_SPREADSHEET_EJECUCION_;
   const properties = PropertiesService.getScriptProperties();
   const savedId = properties.getProperty('ID_HOJA_CALCULO');
   const configuredId = CONFIGURACION_APLICACION.ID_HOJA_CALCULO;
   const id = savedId || (configuredId && configuredId.indexOf('PEGAR_') !== 0 ? configuredId : '');
-  if (id) return SpreadsheetApp.openById(id);
+  if (id) {
+    CACHE_SPREADSHEET_EJECUCION_ = SpreadsheetApp.openById(id);
+    return CACHE_SPREADSHEET_EJECUCION_;
+  }
   const active = SpreadsheetApp.getActiveSpreadsheet();
-  if (active) return active;
+  if (active) {
+    CACHE_SPREADSHEET_EJECUCION_ = active;
+    return CACHE_SPREADSHEET_EJECUCION_;
+  }
   throw new Error('ID_HOJA_NO_CONFIGURADO');
 }
 
 function obtenerHoja_(sheetName) {
+  if (CACHE_HOJAS_EJECUCION_[sheetName]) return CACHE_HOJAS_EJECUCION_[sheetName];
   const ss = obtenerSpreadsheet_();
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet) throw new Error('HOJA_NO_ENCONTRADA_' + sheetName);
+  CACHE_HOJAS_EJECUCION_[sheetName] = sheet;
   return sheet;
 }
 
@@ -34,23 +57,29 @@ function asegurarHoja_(sheetName) {
     .setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setWrap(true);
+  CACHE_HOJAS_EJECUCION_[sheetName] = sheet;
+  invalidarCacheHoja_(sheetName);
   return sheet;
 }
 
 function listarRegistros_(sheetName, filters) {
-  const sheet = obtenerHoja_(sheetName);
-  const headers = ESQUEMAS_APLICACION[sheetName];
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return [];
-  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-  const rows = values.filter(function(row) {
-    return row.some(function(value) { return value !== '' && value !== null; });
-  }).map(function(row) {
-    const object = {};
-    headers.forEach(function(header, index) { object[header] = serializarValor_(row[index]); });
-    return object;
-  }).filter(function(row) {
-    return !Object.prototype.hasOwnProperty.call(row, 'ELIMINADO') || row.ELIMINADO !== 'SI';
+  if (!Object.prototype.hasOwnProperty.call(CACHE_LECTURAS_EJECUCION_, sheetName)) {
+    const sheet = obtenerHoja_(sheetName);
+    const headers = ESQUEMAS_APLICACION[sheetName];
+    const lastRow = sheet.getLastRow();
+    const values = lastRow < 2 ? [] : sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+    CACHE_LECTURAS_EJECUCION_[sheetName] = values.filter(function(row) {
+      return row.some(function(value) { return value !== '' && value !== null; });
+    }).map(function(row) {
+      const object = {};
+      headers.forEach(function(header, index) { object[header] = serializarValor_(row[index]); });
+      return object;
+    }).filter(function(row) {
+      return !Object.prototype.hasOwnProperty.call(row, 'ELIMINADO') || row.ELIMINADO !== 'SI';
+    });
+  }
+  const rows = CACHE_LECTURAS_EJECUCION_[sheetName].map(function(row) {
+    return Object.assign({}, row);
   });
   return aplicarFiltros_(rows, filters || {});
 }
@@ -89,6 +118,7 @@ function insertarRegistro_(sheetName, data, prefix) {
     });
     sheet.appendRow(row);
     SpreadsheetApp.flush();
+    invalidarCacheHoja_(sheetName);
     return limpiarSalidaRecurso_(sheetName, object);
   } finally {
     lock.releaseLock();
@@ -117,6 +147,7 @@ function actualizarRegistro_(sheetName, id, data) {
     const newRow = headers.map(function(header) { return deserializarFecha_(current[header]); });
     sheet.getRange(rowIndex + 2, 1, 1, headers.length).setValues([newRow]);
     SpreadsheetApp.flush();
+    invalidarCacheHoja_(sheetName);
     return limpiarSalidaRecurso_(sheetName, current);
   } finally {
     lock.releaseLock();
@@ -133,6 +164,7 @@ function limpiarHojaDatos_(sheetName) {
   const sheet = obtenerHoja_(sheetName);
   const lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).clearContent();
+  invalidarCacheHoja_(sheetName);
 }
 
 function obtenerRecurso_(resourceName) {

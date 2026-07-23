@@ -44,7 +44,6 @@ function instalarSistemaInicial_(request) {
 
 function iniciarSesion_(request) {
   validarRequeridos_(request, ['correo','contrasena']);
-  limpiarSesionesExpiradas_();
   const email = normalizarEmail_(request.correo);
   const user = listarRegistros_('USUARIOS', {}).find(function(row) {
     return normalizarEmail_(row.CORREO) === email && usuarioTieneAccesoConfigurado_(row);
@@ -88,16 +87,22 @@ function cerrarSesion_(token, session) {
 
 function requerirSesion_(token) {
   if (!token) throw new Error('AUTENTICACION_REQUERIDA');
-  limpiarSesionesExpiradas_();
   const tokenHash = cifrarFichaSesion_(token);
   const session = listarRegistros_('SESIONES', {}).find(function(row) {
     return row.FICHA_SESION_CIFRADA === tokenHash && row.ACTIVA === 'SI';
   });
   if (!session) throw new Error('SESION_INVALIDA');
-  if (new Date(session.FECHA_EXPIRACION).getTime() <= Date.now()) throw new Error('SESION_EXPIRADA');
+  if (new Date(session.FECHA_EXPIRACION).getTime() <= Date.now()) {
+    actualizarRegistro_('SESIONES', session.ID, { ACTIVA: 'NO' });
+    throw new Error('SESION_EXPIRADA');
+  }
   const user = obtenerRegistro_('USUARIOS', session.USUARIO_ID);
   if (!user || user.ESTADO !== 'Activo') throw new Error('USUARIO_DESHABILITADO');
-  actualizarRegistro_('SESIONES', session.ID, { ULTIMO_USO: new Date() });
+  const ultimoUso = new Date(session.ULTIMO_USO || session.FECHA_INICIO || 0).getTime();
+  const intervaloActualizacion = Number(CONFIGURACION_APLICACION.SEGUNDOS_ACTUALIZAR_SESION || 120) * 1000;
+  if (!isFinite(ultimoUso) || Date.now() - ultimoUso >= intervaloActualizacion) {
+    actualizarRegistro_('SESIONES', session.ID, { ULTIMO_USO: new Date() });
+  }
   return { user: user, session: session };
 }
 

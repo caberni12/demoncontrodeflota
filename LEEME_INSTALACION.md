@@ -5,6 +5,8 @@ Aplicación web en español para administrar vehículos, conductores, operacione
 ## Funciones principales
 
 - Panel principal diferente para administradores, supervisores y conductores.
+- Inicio de sesión inmediato, adaptable a teléfonos y computadores, con textos breves y campos sin superposición.
+- La interfaz identifica el servicio como **Base de datos central** o **Base de datos local**, sin mostrar nombres técnicos al usuario.
 - Panel analítico con indicadores, actividad de los últimos siete días, distribución de la flota y acciones rápidas según permisos.
 - Búsqueda predictiva de direcciones mientras se escribe, con selección de coincidencias y coordenadas automáticas para las rutas.
 - Ubicaciones GPS de varios teléfonos con velocidad, precisión, batería, hora y dirección escrita.
@@ -19,6 +21,10 @@ Aplicación web en español para administrar vehículos, conductores, operacione
 - Notificaciones dirigidas a cada conductor.
 - Validación QR del vehículo antes de iniciar una operación.
 - Acceso por rol y filtrado de registros asociados al conductor.
+- Carga rápida con una sola consulta para varios módulos, precarga según permisos, caché temporal y eliminación de solicitudes duplicadas.
+- Modales instantáneos: el formulario aparece primero y las opciones que falten se completan silenciosamente después, sin bloquear su apertura.
+- Indicadores de carga en ingreso, guardado, eliminación, rutas, notificaciones, GPS, QR y demás acciones; además se bloquean los clics duplicados mientras una acción está en curso.
+- Botones de **Sincronizar** en la barra superior, el menú lateral y los módulos principales para solicitar datos vigentes de la base central.
 - Almacenamiento local para pruebas y Google Apps Script para compartir datos entre dispositivos.
 
 ## Importante sobre el seguimiento
@@ -42,6 +48,23 @@ Un sitio web no puede seleccionar por sí solo la opción **Permitir siempre**, 
 8. Use **Implementar > Nueva implementación > Aplicación web**.
 9. Copie la dirección terminada en `/exec`.
 10. Pegue esa dirección en `DIRECCION_APLICACION` dentro de `configuracion.js`.
+
+Para recibir la mejora completa de velocidad es necesario publicar una **versión nueva** de la aplicación web después de copiar el código actualizado. La interfaz mantiene compatibilidad con una implementación anterior, pero la consulta agrupada funciona únicamente con esta revisión del Apps Script.
+
+## Carga rápida de módulos
+
+El sistema abre primero el panel principal y luego prepara silenciosamente los módulos autorizados para el usuario. Al volver a un módulo muestra inmediatamente la última vista disponible y actualiza sus datos sin bloquear la navegación.
+
+En `configuracion.js` puede ajustar:
+
+- `CACHE_MODULOS_MILISEGUNDOS`: tiempo durante el cual un listado puede reutilizarse sin otra consulta.
+- `CACHE_TIEMPO_REAL_MILISEGUNDOS`: caché breve para paneles de estado.
+- `CACHE_MAXIMA_ANTIGUEDAD_MILISEGUNDOS`: tiempo máximo de la vista inmediata mientras se actualiza en segundo plano.
+- `PRECARGA_MAXIMA_CONSULTAS`: máximo de módulos incluidos en una precarga.
+
+El botón **Sincronizar** ignora temporalmente la caché, solicita los datos vigentes y prepara nuevamente los módulos autorizados. Mientras trabaja muestra su indicador de progreso.
+
+Los formularios de vehículos, conductores, mantenciones, rutas, operaciones y notificaciones no esperan una consulta para mostrarse. Cuando necesitan listas auxiliares, el modal ya queda visible y el botón principal indica **Preparando opciones…** hasta que pueda utilizarse de forma segura.
 
 ## Publicación de la interfaz
 

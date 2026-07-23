@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b5f59">
-  <meta name="description" content="Sistema de Gestión de Flotas conectado con Google Apps Script y Hojas de cálculo de Google">
+  <meta name="description" content="Sistema moderno para gestionar flotas, rutas, conductores y ubicaciones en tiempo real">
   <title>Sistema de Gestión de Flotas</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="estilos.css?v=2.2.1">
 </head>
 <body>
   <noscript><div class="noscript">Debe habilitar JavaScript para utilizar el sistema.</div></noscript>
@@ -16,15 +16,15 @@
     <div class="auth-art" aria-hidden="true">
       <div class="brand hero-brand">
         <img id="authCompanyLogo" src="logo.svg" alt="Logotipo de la empresa">
-        <div><strong id="authCompanyName">Sistema de Gestión de Flotas</strong><span>Google Apps Script y Hojas de cálculo de Google</span></div>
+        <div><strong id="authCompanyName">Sistema de Gestión de Flotas</strong><span>Control operacional y seguimiento</span></div>
       </div>
       <div class="hero-copy">
-        <span class="eyebrow">SISTEMA VACÍO Y LISTO PARA CONFIGURAR</span>
-        <h1>Gestione vehículos, conductores, operaciones y ubicaciones desde una sola plataforma.</h1>
-        <p>La interfaz funciona con almacenamiento local y puede conectarse a Google Apps Script al configurar la dirección de la aplicación web.</p>
+        <span class="eyebrow">CONTROL OPERACIONAL EN TIEMPO REAL</span>
+        <h1>Su flota completa, organizada y siempre visible.</h1>
+        <p>Rutas, vehículos, conductores y ubicaciones centralizados con acceso seguro según cada perfil.</p>
       </div>
       <div class="hero-preview">
-        <div><span>Vehículos</span><b>0</b></div><div><span>Conductores</span><b>0</b></div><div><span>Operaciones</span><b>0</b></div>
+        <div><span>Rutas</span><b>Asignación ágil</b></div><div><span>GPS</span><b>Seguimiento activo</b></div><div><span>Acceso</span><b>Control por permisos</b></div>
       </div>
     </div>
 
@@ -44,20 +44,20 @@
         <p class="helper">Puede elegir cualquier combinación. Se recomienda usar 8 caracteres o más. Distingue mayúsculas y minúsculas.</p>
         <label class="field"><span>Clave de instalación</span><input name="claveInstalacion" type="password" required placeholder="La generada por instalarSistema()"></label>
         <button class="btn primary full" type="submit">Instalar y crear administrador</button>
-        <p class="helper">En almacenamiento local puede utilizar cualquier clave no vacía. En Google Apps Script use la clave mostrada al ejecutar <code>instalarSistema()</code>.</p>
+        <p class="helper">Utilice la clave generada durante la instalación inicial del sistema.</p>
       </form>
 
       <form class="auth-card hidden" id="loginForm">
+        <div class="login-brand"><img id="loginCompanyLogo" src="logo.svg" alt=""><div><b id="loginCompanyName">Sistema de Gestión de Flotas</b><span>Control operacional</span></div></div>
         <div class="auth-heading">
-          <span class="eyebrow">ACCESO AL SISTEMA</span>
-          <h2>Iniciar sesión</h2>
-          <p>Ingrese con un usuario registrado en la hoja USUARIOS.</p>
+          <span class="eyebrow">ACCESO SEGURO</span>
+          <h2>Bienvenido</h2>
+          <p>Ingrese sus credenciales para continuar.</p>
         </div>
-        <label class="field"><span>Correo</span><input id="loginEmail" name="correo" type="email" autocomplete="username" required></label>
-        <label class="field"><span>Contraseña</span><div class="password-field"><input id="loginPassword" name="contrasena" type="password" autocomplete="current-password" required><button type="button" id="showPassword" aria-label="Mostrar contraseña">◉</button></div></label>
-        <button class="btn primary full" type="submit">Ingresar</button>
-        <p class="helper">Si es el propietario y no puede ingresar, ejecute <code>prepararAccesoAdministrador()</code> en Apps Script para obtener un acceso temporal.</p>
-        <button class="link-button" id="recheckConnection" type="button">Volver a comprobar conexión</button>
+        <label class="field"><span>Correo electrónico</span><input id="loginEmail" name="correo" type="email" autocomplete="username" inputmode="email" required placeholder="nombre@empresa.cl"></label>
+        <label class="field"><span>Contraseña</span><div class="password-field"><input id="loginPassword" name="contrasena" type="password" autocomplete="current-password" required placeholder="Ingrese su contraseña"><button type="button" id="showPassword" aria-label="Mostrar contraseña">◉</button></div></label>
+        <button class="btn primary full login-submit" type="submit">Iniciar sesión</button>
+        <button class="link-button login-retry" id="recheckConnection" type="button">Comprobar conexión</button>
       </form>
 
       <div class="auth-card hidden" id="connectionError">
@@ -77,7 +77,8 @@
       </div>
       <nav id="nav" class="nav" aria-label="Navegación principal"></nav>
       <div class="sidebar-footer">
-        <div class="backend-card"><span>Servicio de datos activo</span><b id="backendName">Local</b><small id="backendDetail">Persistencia en navegador</small></div>
+        <div class="backend-card"><span>Información disponible</span><b id="backendName">Base de datos</b><small id="backendDetail">Sincronización activa</small></div>
+        <button class="nav-button" id="sidebarSyncButton"><i>↻</i>Sincronizar datos</button>
         <button class="nav-button logout" id="logoutButton"><i>↪</i>Cerrar sesión</button>
       </div>
     </aside>
@@ -89,6 +90,7 @@
         <div class="topbar-actions">
           <div class="connection-status" id="connectionStatus"><i></i><span>Conectado</span></div>
           <div class="save-status" id="saveStatus"><i></i><span>Sin cambios pendientes</span></div>
+          <button class="btn soft topbar-sync" id="syncButton" type="button" title="Sincronizar datos"><i>↻</i><span>Sincronizar</span></button>
           <button class="icon-button notification-button" id="notificationButton" aria-label="Abrir notificaciones" title="Notificaciones">🔔<span id="notificationBadge" hidden>0</span></button>
           <button class="icon-button" id="themeButton" aria-label="Cambiar tema">☾</button>
           <button class="profile-button" id="profileButton"><span class="avatar" id="userAvatar">AD</span><span><b id="userName">Administrador</b><small id="userRole">Administrador</small></span><i>⌄</i></button>
@@ -119,9 +121,9 @@
 
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
-  <script src="configuracion.js"></script>
-  <script src="mapa.js"></script>
-  <script src="conexion.js"></script>
-  <script src="aplicacion.js"></script>
+  <script src="configuracion.js?v=2.2.1"></script>
+  <script src="mapa.js?v=2.2.1"></script>
+  <script src="conexion.js?v=2.2.1"></script>
+  <script src="aplicacion.js?v=2.2.1"></script>
 </body>
 </html>
